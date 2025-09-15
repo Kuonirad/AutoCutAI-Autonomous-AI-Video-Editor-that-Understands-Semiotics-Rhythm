@@ -1,0 +1,19 @@
+name: chaos-check
+on: [push, pull_request]
+jobs:
+  chaos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 0-toolchain
+        run: bash ci/0-setup.sh
+      - name: 1-trace
+        run: bash ci/1-trace.sh
+      - name: 2-attractor
+        run: python3 ci/2-embed.py
+      - name: 3-wtmm
+        run: bash ci/3-wtmm.sh
+      - name: 9-entropy
+        run: bash ci/9-entropy.sh
+      - name: 10-seal
+        run: bash ci/10-seal.sh
