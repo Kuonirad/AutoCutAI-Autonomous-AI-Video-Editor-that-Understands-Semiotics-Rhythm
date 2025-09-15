@@ -56,7 +56,7 @@ def extract_sync(path: str) -> AudioPerception:
     """Synchronous implementation of audio feature extraction."""
     try:
         y, sr = sf.read(path)
-    except Exception as e:
+    except sf.SoundFileError as e:
         log.error(f"Failed to read audio file {path}: {e}")
         raise
 
