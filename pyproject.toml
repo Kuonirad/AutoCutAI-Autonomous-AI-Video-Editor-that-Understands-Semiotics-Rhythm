@@ -15,7 +15,8 @@ dependencies = [
     "librosa (>=0.11.0,<0.12.0)",
     "imageio-ffmpeg (>=0.6.0,<0.7.0)",
     "soundfile (>=0.13.1,<0.14.0)",
-    "typed-ffmpeg (>=3.6,<4.0)"
+    "typed-ffmpeg (>=3.6,<4.0)",
+    "scipy (>=1.16.2,<2.0.0)"
 ]
 
 
@@ -28,3 +29,8 @@ pytest = "^8.4.2"
 black = "^25.1.0"
 ruff = "^0.13.0"
 mypy = "^1.18.1"
+pytest-asyncio = "^1.2.0"
+soundfile = "^0.13.1"
+
+[tool.pytest.ini_options]
+pythonpath = "src"
