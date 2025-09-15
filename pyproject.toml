@@ -1,0 +1,30 @@
+[project]
+name = "app"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "google-labs-jules[bot]",email = "161369871+google-labs-jules[bot]@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "numpy (<2.3.0)",
+    "opencv-python (>=4.12.0.88,<5.0.0.0)",
+    "torch (>=2.8.0,<3.0.0)",
+    "transformers (>=4.56.1,<5.0.0)",
+    "ffmpeg-python (>=0.2.0,<0.3.0)",
+    "librosa (>=0.11.0,<0.12.0)",
+    "imageio-ffmpeg (>=0.6.0,<0.7.0)",
+    "soundfile (>=0.13.1,<0.14.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.2"
+black = "^25.1.0"
+ruff = "^0.13.0"
+mypy = "^1.18.1"
