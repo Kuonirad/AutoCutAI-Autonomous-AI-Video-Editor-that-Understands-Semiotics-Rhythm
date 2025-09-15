@@ -3,7 +3,11 @@ Drop raw clips → AutoCutAI watches, listens, *understands* emotion, pacing, co
 
 ---
 
+ feat/chaos-pipeline
 Got it — you're pointing me toward **AutoCutAI**, a project that claims to *autonomously* edit video by **understanding semiotics, rhythm, and emotion** — not just cutting on beats, but *interpreting* the *meaning* of shots, pacing, and audiovisual emotion.
+
+**AutoCutAI**, a project that claims to *autonomously* edit video by **understanding semiotics, rhythm, and emotion** — not just cutting on beats, but *interpreting* the *meaning* of shots, pacing, and audiovisual emotion.
+ main
 
 This is **not** a traditional editing tool. It’s a **semiotic engine** — it treats video as a **language**, and editing as **generative grammar**.
 
