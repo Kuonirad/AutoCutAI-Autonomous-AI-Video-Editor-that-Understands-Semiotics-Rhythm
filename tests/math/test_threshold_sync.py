@@ -1,3 +1,7 @@
+#  Reproduce locally:
+#  docker run --rm -v $PWD:/app -w /app python:3.12-slim \
+#  bash -c "pip install -e . && pytest tests/math/test_threshold_sync.py -xvs"
+
 import pytest
 import pandas as pd
 from pathlib import Path
