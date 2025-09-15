@@ -12,10 +12,10 @@ dependencies = [
     "opencv-python (>=4.12.0.88,<5.0.0.0)",
     "torch (>=2.8.0,<3.0.0)",
     "transformers (>=4.56.1,<5.0.0)",
-    "ffmpeg-python (>=0.2.0,<0.3.0)",
     "librosa (>=0.11.0,<0.12.0)",
     "imageio-ffmpeg (>=0.6.0,<0.7.0)",
-    "soundfile (>=0.13.1,<0.14.0)"
+    "soundfile (>=0.13.1,<0.14.0)",
+    "typed-ffmpeg (>=3.6,<4.0)"
 ]
 
 
