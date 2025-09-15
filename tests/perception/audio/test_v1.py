@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 import os
 
-from autocutai.perception.audio import extract, AudioPerception
+from autocutai.perception.audio import extract, extract_sync, AudioPerception
 
 
 # ------------------------------------------------------------------
@@ -97,3 +97,25 @@ async def test_extract_tiny_file(sr: int):
     Path(fname).unlink()
     # simply not exploding is success
     assert isinstance(perception, AudioPerception)
+
+
+@pytest.mark.asyncio
+async def test_extract_file_not_found():
+    """Ensure a clear error is raised for missing files."""
+    with pytest.raises(sf.SoundFileError):
+        await extract("non_existent_file.wav")
+
+
+def test_extract_sync_low_samplerate_raises_error():
+    """A sample rate that causes window/hop to be zero should raise ValueError."""
+    # Create a dummy file with a low sample rate
+    sr = 10 # Below the threshold to make window/hop zero
+    y = np.zeros(sr * 1) # 1 second of audio
+    fd, fname = tempfile.mkstemp(suffix=".wav")
+    sf.write(fname, y.astype(np.float32), sr)
+    os.close(fd)
+
+    with pytest.raises(ValueError, match="Window/hop size zero"):
+        extract_sync(str(fname))
+
+    Path(fname).unlink()
