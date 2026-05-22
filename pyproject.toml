@@ -37,7 +37,31 @@ pytest-asyncio = "^1.2.0"
 [tool.pytest.ini_options]
 pythonpath = "src"
 
+[tool.black]
+line-length = 88
+target-version = ["py312", "py313"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = ["poetry.lock", "fixtures"]
+
 [tool.mypy]
 python_version = "3.12"
 mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = [
+    "av",
+    "cv2",
+    "imageio_ffmpeg",
+    "librosa",
+    "pandas",
+    "PIL.*",
+    "scipy.*",
+    "soundfile",
+    "torch.*",
+    "torchaudio.*",
+    "transformers.*",
+]
 ignore_missing_imports = true
