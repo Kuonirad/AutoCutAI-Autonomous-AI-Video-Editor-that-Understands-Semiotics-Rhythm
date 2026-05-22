@@ -8,7 +8,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-
 bb_counts_path = Path(os.environ.get("BB_COUNTS_CSV", "bb_counts.csv"))
 if not bb_counts_path.exists():
     bb_counts_path = Path("fixtures/chaos/bb_counts.csv")
