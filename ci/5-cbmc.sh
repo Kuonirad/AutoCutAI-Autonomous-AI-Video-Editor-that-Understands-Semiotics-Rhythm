@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+
 # Step 5: Bounded-model-check the root cause only
 
 # This script assumes that the ROOT_CAUSES environment variable is set,
@@ -16,7 +18,7 @@ cp target.bc slice.bc # Placeholder action
 # 5.2  Bounded check (bound = 40 steps)
 cbmc slice.bc --unwind 40 --property target.spec > cbmc.out
 
-# If VERIFICATION SUCCESSFUL → continue; else fail job.
+# If VERIFICATION SUCCESSFUL, continue; else fail job.
 if grep -q "VERIFICATION SUCCESSFUL" cbmc.out; then
   exit 0
 else

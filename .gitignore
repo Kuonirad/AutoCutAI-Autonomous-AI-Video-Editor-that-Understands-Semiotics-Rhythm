@@ -243,3 +243,19 @@ data/
 models/
 *.pth
 *.h5
+
+# Chaos pipeline generated artifacts
+pt.data
+branches.ns
+attractor.txt
+falpha.txt
+/bb_counts.csv
+run1.json
+target.o
+target.bc
+slice.bc
+patched.bc
+cbmc.out
+norm.txt
+behaviour.zst
+SHA512SUMS

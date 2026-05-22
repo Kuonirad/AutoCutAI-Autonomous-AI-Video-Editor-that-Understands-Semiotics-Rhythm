@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+
 # Step 9: Entropy stopping rule
 
 # 9.1  Concatenate *all* test outputs

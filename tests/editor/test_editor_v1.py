@@ -1,4 +1,3 @@
-import pytest
 import logging
 from dataclasses import dataclass
 from typing import List
@@ -7,6 +6,8 @@ from typing import List
 from autocutai.editor.v1 import rough_cut_v1
 from autocutai.editor.utils import BeatGrid
 from autocutai.editor.contract import RoughCut, EditDecision
+from autocutai.perception.audio import AudioPerception
+from autocutai.perception.video import Shot, TransitionType, VideoStructurePerception
 
 log = logging.getLogger(__name__)
 
@@ -15,11 +16,13 @@ log = logging.getLogger(__name__)
 # ------------------------------------------------------------------
 # We define minimal mocks to test the editor logic in isolation.
 
+
 @dataclass
 class MockShot:
     duration: float
     start_frame: int
     end_frame: int
+
 
 @dataclass
 class MockVideoStructurePerception:
@@ -27,13 +30,16 @@ class MockVideoStructurePerception:
     fps: float
     resolution: tuple[int, int]
 
+
 @dataclass
 class MockAudioPerception:
     rhythm_onsets: List[float]
 
+
 # ------------------------------------------------------------------
 # Utility Tests (BeatGrid)
 # ------------------------------------------------------------------
+
 
 def test_beatgrid_utility():
     """Verify time-to-frame conversion and efficient searching."""
@@ -46,15 +52,17 @@ def test_beatgrid_utility():
     assert grid.nearest_on_or_after(0) == 15
     assert grid.nearest_on_or_after(15) == 15  # On the beat
     assert grid.nearest_on_or_after(16) == 30  # After the beat
-    assert grid.nearest_on_or_after(46) is None # No beats left
+    assert grid.nearest_on_or_after(46) is None  # No beats left
+
 
 # ------------------------------------------------------------------
 # Policy Tests (V1 Robust)
 # ------------------------------------------------------------------
 
+
 def test_rough_cut_v1_policy_robust():
     """Verify the core V1 policy: Filter short shots, align start to beat, filter short results, assemble."""
-    fps = 10.0 # Use 10 FPS for easy frame math
+    fps = 10.0  # Use 10 FPS for easy frame math
 
     # Scenario:
     # S1: 0.0-3.0s (F0-29). Dur 3.0s.
@@ -69,7 +77,8 @@ def test_rough_cut_v1_policy_robust():
             MockShot(duration=2.6, start_frame=34, end_frame=59),
             MockShot(duration=0.6, start_frame=60, end_frame=65),
         ],
-        fps=fps, resolution=(1920, 1080)
+        fps=fps,
+        resolution=(1920, 1080),
     )
 
     # Beats at: 0.5s (F5), 3.5s (F35), 6.3s (F63)
@@ -89,16 +98,20 @@ def test_rough_cut_v1_policy_robust():
     assert cut.decisions[0] == EditDecision("input.mp4", src_in=5, src_out=29, dst_in=0)
 
     # Decision 2
-    assert cut.decisions[1] == EditDecision("input.mp4", src_in=35, src_out=59, dst_in=25)
+    assert cut.decisions[1] == EditDecision(
+        "input.mp4", src_in=35, src_out=59, dst_in=25
+    )
 
     assert cut.total_frames == 50
+
 
 def test_rough_cut_v1_edge_cases():
     """Test scenarios where beats occur after shots end, or no beats exist."""
     fps = 10.0
     video = MockVideoStructurePerception(
         shots=[MockShot(duration=1.0, start_frame=10, end_frame=19)],
-        fps=fps, resolution=(1920, 1080)
+        fps=fps,
+        resolution=(1920, 1080),
     )
 
     # Case 1: Beat after shot ends. Shot ends at F19. Beat at F21 (2.1s).
@@ -111,3 +124,32 @@ def test_rough_cut_v1_edge_cases():
     audio2 = MockAudioPerception(rhythm_onsets=[])
     cut2 = rough_cut_v1(video, audio2, "input.mp4")
     assert len(cut2.decisions) == 0
+
+
+def test_rough_cut_v1_accepts_public_perception_contracts():
+    """The editor should accept the public perception dataclasses directly."""
+    video = VideoStructurePerception(
+        shots=[
+            Shot(
+                start_time=0.0,
+                end_time=1.0,
+                start_frame=0,
+                end_frame=9,
+                transition_in=TransitionType.HARD_CUT,
+                confidence=1.0,
+            )
+        ],
+        fps=10.0,
+        duration=1.0,
+        resolution=(1280, 720),
+    )
+    audio = AudioPerception(
+        silence_segments=[],
+        pacing_curve=[],
+        rhythm_onsets=[0.0],
+    )
+
+    cut = rough_cut_v1(video, audio, "input.mp4")
+
+    assert cut.output_resolution == (1280, 720)
+    assert cut.decisions == (EditDecision("input.mp4", src_in=0, src_out=9, dst_in=0),)
