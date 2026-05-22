@@ -21,6 +21,9 @@ int main(int argc, char* argv[])
     while (fscanf(f, "%lf", &v) == 1) sig.push_back(v);
     fclose(f);
     if (sig.size() < 64) { std::cerr << "need >=64 samples\n"; return 1; }
+    size_t n = 1;
+    while ((n << 1) <= sig.size()) n <<= 1;
+    sig.resize(n);
     std::cout << width(sig) << '\n';
     return 0;
 }

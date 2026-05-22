@@ -8,9 +8,11 @@ set -euo pipefail
 # 10.1  Hash every artefact
 sha512sum pt.data attractor.txt falpha.txt cbmc.out norm.txt behaviour.zst > SHA512SUMS
 
-# 10.2  Store in an append-only log (example: QLDB)
-# This command will fail if the ledger 'ChaosLog' does not exist
-# or if credentials are not configured.
-aws qldb send-command --ledger ChaosLog \
-  --statement "INSERT INTO Evidence ?" \
-  --parameters file://SHA512SUMS
+# 10.2  Store in an append-only log (example: QLDB) when credentials are configured.
+if command -v aws >/dev/null 2>&1 && [ -n "${AWS_ACCESS_KEY_ID:-}" ]; then
+  aws qldb send-command --ledger ChaosLog \
+    --statement "INSERT INTO Evidence ?" \
+    --parameters file://SHA512SUMS
+else
+  echo "AWS QLDB credentials unavailable; SHA512SUMS is the local immutable seal."
+fi

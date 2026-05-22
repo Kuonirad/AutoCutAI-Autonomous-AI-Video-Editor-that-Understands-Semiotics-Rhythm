@@ -1,5 +1,5 @@
 CXX ?= g++
-LLVM_CONFIG ?= llvm-config-15
+LLVM_CONFIG ?= llvm-config
 
 CXXFLAGS ?= -O2
 WTMM_LIBS := -lgsl -lgslcblas -lm

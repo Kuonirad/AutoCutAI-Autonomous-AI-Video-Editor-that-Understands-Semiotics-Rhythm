@@ -24,3 +24,5 @@ make native-tools LLVM_CONFIG=llvm-config
 ```
 
 Committed chaos-pipeline input fixtures live under `fixtures/chaos/`. Generated pipeline outputs such as `bb_counts.csv`, `pt.data`, `falpha.txt`, and `SHA512SUMS` should remain outside version control unless they are promoted to reviewed fixtures.
+
+On GitHub-hosted runners, the chaos scripts fall back to deterministic fixtures when hardware tracing, coverage profiles, CBMC, or AWS QLDB credentials are unavailable. That keeps the workflow useful as a structural smoke check while preserving the real tool path for equipped runners.

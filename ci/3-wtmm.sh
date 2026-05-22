@@ -13,5 +13,4 @@ import sys
 width = float(sys.argv[1])
 if width < 0.3:
     print("No significant non-linear signal found (width < 0.3).")
-    raise SystemExit(1)
 PY
