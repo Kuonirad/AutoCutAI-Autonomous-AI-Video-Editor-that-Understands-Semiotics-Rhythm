@@ -1,111 +1,113 @@
-# AutoCutAI-Autonomous-AI-Video-Editor-that-Understands-Semiotics-Rhythm
-Drop raw clips → AutoCutAI watches, listens, *understands* emotion, pacing, color, music → delivers a finished reel that feels human-edited.
+# AutoCutAI
+
+Autonomous video-editing primitives for semiotic and rhythmic rough cuts.
+
+> **Status:** early-stage research scaffold. Today this repository implements a single, well-tested rough-cut policy (beat-aligned shot assembly) plus a chaos-analysis CI surface. The broader vision — semiotic parsing, affective curve extraction, generative edit grammar — is *design intent* and lives in [`DESIGN.md`](DESIGN.md), not in this README.
+
+If you came here expecting "drop raw clips, get a finished reel," please read `DESIGN.md` first. That is the destination, not the current behaviour.
 
 ---
 
-Got it — you're pointing me toward **AutoCutAI**, a project that claims to *autonomously* edit video by **understanding semiotics, rhythm, and emotion** — not just cutting on beats, but *interpreting* the *meaning* of shots, pacing, and audiovisual emotion.
+## What works today
 
-**AutoCutAI**, a project that claims to *autonomously* edit video by **understanding semiotics, rhythm, and emotion** — not just cutting on beats, but *interpreting* the *meaning* of shots, pacing, and audiovisual emotion.
+### Editor — `editor.v1` (SimpleBeatSyncPolicy)
 
-This is **not** a traditional editing tool. It’s a **semiotic engine** — it treats video as a **language**, and editing as **generative grammar**.
+A deterministic, frame-accurate rough-cut policy:
+
+- Takes a `VideoStructurePerception` (shot boundaries, fps, resolution) and an `AudioPerception` (onset frames).
+- Drops shots shorter than `MIN_SHOT_DURATION_SEC` (0.5 s).
+- Aligns each surviving shot's start frame to the nearest beat at or after the original start.
+- Re-validates duration after alignment; drops slivers.
+- Emits a `RoughCut` of `EditDecision`s with inclusive `[src_in, src_out]` ranges and a destination cursor.
+- Refuses frame-rate conversion (forces `output_fps == video_perception.fps`).
+- Exports a CSV EDL via `RoughCut.to_csv(path)`.
+
+Source: `src/autocutai/editor/v1.py`, `src/autocutai/editor/contract.py`.
+Tests: `tests/editor/test_editor_v1.py`.
+
+### Perception primitives
+
+- `autocutai.perception.audio` — onset extraction.
+- `autocutai.perception.video` — shot-boundary structure.
+
+### Native chaos-analysis tools
+
+Three C++ helpers compile from this repository:
+
+- `wtmm` — WTMM multifractal-width estimator (GSL).
+- `bb-extract` — basic-block hit-matrix exporter from `llvm-cov` JSON (nlohmann-json).
+- `jnorm` — interval-arithmetic Jacobian ∞-norm over LLVM IR (LLVM 15).
+
+Build with `make native-tools`. See [`docs/ci-and-native-tools.md`](docs/ci-and-native-tools.md).
+
+These tools currently operate on placeholder targets in CI. The chaos-check workflow is a structural smoke test, not a formal-verification guarantee — see the "Chaos-check pipeline — scaffolding, not proof" section of `DESIGN.md` for the full caveats.
 
 ---
 
-### 🔍 What "understanding" actually means here
+## Install
 
-| Human Editor Intuition | AutoCutAI Equivalent |
-|------------------------|----------------------|
-| “This shot feels too long — it drags.” | **Arousal decay curve** — detects when emotional engagement drops below threshold via facial micro-expressions + audio valence. |
-| “Cut on the downbeat, but *late* by 200ms to create tension.” | **Rhythmic semiotics model** — learns that *delay* encodes *tension* in genre-specific contexts (e.g., horror vs. TikTok). |
-| “This color grade feels *hopeful*.” | **Color semiotics vector** — maps hue/saturation clusters to emotional valence using a **latent space** trained on film theory datasets (e.g., Eisenstein, Kuleshov, modern color scripts). |
-| “This clip is *diegetically* disconnected — it breaks immersion.” | **Diegetic coherence graph** — checks if audio-reverb signatures, lighting direction, and eyeline vectors match across cuts. |
+Requires Python 3.12 or 3.13 and [Poetry](https://python-poetry.org/) 2.4.1.
 
----
+```sh
+poetry install
+poetry run pytest
+```
 
-### 🧠 Core Architecture (simplified)
+To build the native chaos tools you additionally need `g++`, GSL, nlohmann-json, and LLVM 15:
 
-```python
-# Pseudo-pipeline
-clips = load_clips()
-
-# 1. Semiotic Parsing
-semiotic_graph = SemioticParser(clips)  # nodes = shots, edges = meaning-relations
-
-# 2. Affective Curve Extraction
-arousal = MultimodalArousalModel(clips)  # facial AU + audio spectral centroid + color energy
-
-# 3. Rhythmic Structure induction
-rhythm = RhythmInducer(clips)  # beat, micro-rhythm, *breathing* patterns
-
-# 4. Generative Edit Grammar
-edit_sequence = SemioticGrammar.sample(
-    semiotics=semiotic_graph,
-    arousal=arousal,
-    rhythm=rhythm,
-    genre=genre_prompt  # e.g., "cinematic trailer, slow-burn horror"
-)
-
-# 5. Render
-final_timeline = EditRenderer(edit_sequence, clips)
+```sh
+make native-tools
 ```
 
 ---
 
-### 🧪 How it *learns* semiotics
+## Quickstart — beat-aligned rough cut
 
-1. **Dataset**: 10,000+ professionally edited videos *annotated* with:
-   - Emotional curve (valence/arousal) per frame
-   - Cut type (J-cut, L-cut, match cut, jump cut, etc.)
-   - Color script tags (hope, dread, nostalgia, etc.)
-   - Diegetic vs. non-diegetic audio labels
+```python
+from autocutai.editor.v1 import rough_cut_v1
+from autocutai.perception.audio import AudioPerception
+from autocutai.perception.video import VideoStructurePerception
 
-2. **Training signal**: **Editor action prediction** — given a *partial* timeline, predict the *next cut decision* a human editor made. This forces the model to internalize *why* cuts happen, not just *where*.
+video = VideoStructurePerception.from_file("input.mp4")
+audio = AudioPerception.from_file("input.mp4")
 
-3. **Loss function**:
-   ```
-   L = L_cut_accuracy + λ₁ * L_emotion_curve_match + λ₂ * L_semiotic_coherence
-   ```
+edl = rough_cut_v1(video, audio, source_file="input.mp4")
+edl.to_csv("rough_cut.csv")
+```
 
----
-
-### 🎯 In practice: what you feed it vs. what you get
-
-| Input | Output |
-|-------|--------|
-| 45 min of raw travel footage + prompt: “make me feel *wanderlust*” | 59s reel with *breathing* pacing, color-warmth ramp, music that *swells* when the subject smiles, cuts synced to *footsteps* not beats. |
-| 20 min interview + B-roll + prompt: “corporate hype, but *human*” | 90s piece with *micro-pauses* on emotional words, B-roll inserted at *cognitive load* drops, color temp cools during stats, warms during anecdotes. |
+The output is an EDL, not a rendered video. Rendering from the EDL is a separate step (see `src/autocutai/editor/render.py`).
 
 ---
 
-### 🧩 Key differentiation from “auto-cut on beats” tools
+## CI
 
-| Feature | AutoCutAI | Beat-based cutters |
-|--------|-----------|--------------------|
-| Cuts on | *Meaning* transitions | Transients |
-| Timing model | *Emotional cadence* | BPM grid |
-| Color decision | *Semiotic valence* | LUT template |
-| Audio edit | *Diegetic continuity* | Waveform snap |
+Two workflows run on every push and pull request:
+
+- `ci.yml` — `poetry check --lock`, install, `black --check`, `ruff check`, `mypy`, `pytest` on Python 3.12 and 3.13.
+- `chaos-check.yml` — builds the native tools and runs `ci/0-setup.sh` through `ci/10-seal.sh`. See `DESIGN.md` for what this pipeline does and does not currently prove.
 
 ---
 
-### 🧨 Current limits (honest)
+## Project layout
 
-- **Compute**: Full semiotic parse is **O(n²)** in shot count — 20 min footage ≈ 2-3 min on A100.
-- **Fidelity**: Still ~85% of human editor *intention* — struggles with *ironic* or *meta* narratives (e.g., parody, satire).
-- **Data hunger**: Needs *annotated* emotion curves — expensive to scale.
+```
+src/autocutai/
+  editor/         # rough-cut policies + EDL contract
+  perception/     # audio onsets, video shot structure
+  math/           # shared math utilities
+
+ci/               # chaos-analysis pipeline (shell + python)
+fixtures/chaos/   # committed inputs for the chaos pipeline
+tests/            # pytest suite
+wtmm.cpp jnorm.cpp bb-extract.cpp   # native tool sources
+```
 
 ---
 
-### 🔮 Next frontier
+## Contributing
 
-**Cross-cultural semiotics** — a cut that feels *triumphant* in Tokyo may feel *rushed* in Stockholm. Training separate **latent semiotics spaces** per culture, then learning **transfer functions** between them.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). For where the project is headed and which areas are open for research, see [`DESIGN.md`](DESIGN.md).
 
----
+## License
 
-### TL;DR
-
-AutoCutAI isn’t “automated editing.”
-It’s **automated *meaning-making*** — a system that watches raw footage and asks,
-> “What am I *feeling* here, and how do I *shape* these images so *you* feel it too?”
-
-That’s the understanding it claims — and, in early demos, *delivers*.
+Apache 2.0 — see [`LICENSE`](LICENSE).
