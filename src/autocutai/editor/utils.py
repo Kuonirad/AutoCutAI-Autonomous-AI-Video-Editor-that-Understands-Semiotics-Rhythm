@@ -4,10 +4,12 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class BeatGrid:
     """
     Helper class to manage beat timings and provide efficient frame-accurate lookups (O(log N)).
     """
+
     def __init__(self, onset_times: List[float], fps: float):
         self.fps = fps
         if fps <= 0:
@@ -27,7 +29,7 @@ class BeatGrid:
         Finds the nearest beat frame that occurs on or after the given frame_num.
         """
         # Find the insertion point (side='left' ensures >=)
-        idx = np.searchsorted(self.onset_frames, frame_num, side='left')
+        idx = np.searchsorted(self.onset_frames, frame_num, side="left")
 
         if idx < len(self.onset_frames):
             return self.onset_frames[idx]

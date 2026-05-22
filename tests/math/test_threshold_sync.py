@@ -15,8 +15,11 @@ MATH_DATA_DIR = Path("data/math")
 # IMPORTANT: Update this path to match the actual output of your analysis notebook
 SILENCE_ROC_SUMMARY = MATH_DATA_DIR / "silence_roc_v1_summary.csv"
 
-@pytest.mark.skipif(not SILENCE_ROC_SUMMARY.exists(),
-                    reason=f"Math summary file not found. Requires analysis notebook run and Git LFS checkout.")
+
+@pytest.mark.skipif(
+    not SILENCE_ROC_SUMMARY.exists(),
+    reason="Math summary file not found. Requires analysis notebook run and Git LFS checkout.",
+)
 def test_silence_threshold_synchronization():
     """
     FAIL-SAFE: Ensures that thresholds in the source code match the
@@ -37,8 +40,9 @@ def test_silence_threshold_synchronization():
 
     code_threshold = thresholds.AUDIO_RMS_SILENCE_THRESHOLD_DB
 
-    assert code_threshold == pytest.approx(derived_threshold), \
-        (f"Threshold MISMATCH! Code: {code_threshold} dBFS, Analysis: {derived_threshold} dBFS. "
-         f"Rerun the analysis notebook and commit the updates to both code and data.")
+    assert code_threshold == pytest.approx(derived_threshold), (
+        f"Threshold MISMATCH! Code: {code_threshold} dBFS, Analysis: {derived_threshold} dBFS. "
+        f"Rerun the analysis notebook and commit the updates to both code and data."
+    )
 
     log.info(f"Threshold synchronization verified: {code_threshold} dBFS.")

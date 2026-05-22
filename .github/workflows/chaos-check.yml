@@ -4,7 +4,7 @@ jobs:
   chaos:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: 0-toolchain
         run: bash ci/0-setup.sh
       - name: 1-trace
@@ -13,15 +13,12 @@ jobs:
         run: python3 ci/2-embed.py
       - name: 3-wtmm
         run: bash ci/3-wtmm.sh
-feat/chaos-pipeline
       - name: 4-causal
         run: bash ci/4-causal.sh
       - name: 5-bmc
         run: bash ci/5-cbmc.sh
       - name: 6-contract
         run: bash ci/6-contract.sh
-
- main
       - name: 9-entropy
         run: bash ci/9-entropy.sh
       - name: 10-seal

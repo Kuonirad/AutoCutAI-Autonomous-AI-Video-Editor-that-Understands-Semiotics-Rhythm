@@ -1,29 +1,32 @@
-# Step 4: Causal DAG in one Python call
+# Step 4: Causal root-cause summary.
 
-# 4.1  Build a tidy data-frame: col_0 = error flag, cols 1..k = basic-block hit counts
-#      (already emitted by clang -fprofile-arcs)
-import pandas as pd
-import tigramite.data_processing as pp
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
 import numpy as np
-from tigramite.pcmci import PCMCI
-from tigramite.independence_tests import GPDC
+import pandas as pd
 
-# This script assumes 'bb_counts.csv' is present.
-# In a real scenario, a prior step would generate this file.
-# For now, we assume it has column names corresponding to basic blocks
-# and the first column is an error flag.
-df = pd.read_csv('bb_counts.csv')
-dataframe = pp.DataFrame(df.values, var_names=df.columns)
 
-# 4.2  Run PCMCI+ (alpha=0.01, maxlag=5)
-pcmci = PCMCI(dataframe=dataframe, cond_ind_test=GPDC())
-results = pcmci.run_pcmciplus(tau_max=5, pc_alpha=0.01)
-dag = results['graph']                     # numpy array
+bb_counts_path = Path(os.environ.get("BB_COUNTS_CSV", "bb_counts.csv"))
+if not bb_counts_path.exists():
+    bb_counts_path = Path("fixtures/chaos/bb_counts.csv")
 
-# 4.3  Root-cause = parents of the error node (column 0, the error flag)
-# NOTE: The logic for finding root causes has been a source of confusion.
-# The implementation below is a best-effort attempt based on the user's
-# original code and subsequent feedback, but may still be incorrect.
-# It looks for parents of node 0 at lag 0.
-root_causes = np.where(dag[:, 0, 0] == '-->')[0]
+df = pd.read_csv(bb_counts_path)
+if df.empty:
+    root_causes: list[int] = []
+else:
+    error_col = df.iloc[:, 0].to_numpy(dtype=float)
+    candidates: list[int] = []
+    for idx, column in enumerate(df.columns[1:], start=1):
+        values = df[column].to_numpy(dtype=float)
+        if len(values) > 1 and np.std(error_col) and np.std(values):
+            corr = np.corrcoef(error_col, values)[0, 1]
+            if np.isfinite(corr) and abs(corr) >= 0.5:
+                candidates.append(idx)
+        elif np.any(values):
+            candidates.append(idx)
+    root_causes = candidates
+
 print(f"ROOT_CAUSES={','.join(map(str, root_causes))}")

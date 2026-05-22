@@ -1,22 +1,24 @@
 [project]
-name = "app"
+name = "autocutai"
 version = "0.1.0"
-description = ""
+description = "Autonomous video editing primitives for semiotic and rhythmic rough cuts."
 authors = [
-    {name = "google-labs-jules[bot]",email = "161369871+google-labs-jules[bot]@users.noreply.github.com"}
+    {name = "Kevin John Kull"}
 ]
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
 dependencies = [
-    "numpy (<2.3.0)",
-    "opencv-python (>=4.12.0.88,<5.0.0.0)",
-    "torch (>=2.8.0,<3.0.0)",
-    "transformers (>=4.56.1,<5.0.0)",
-    "librosa (>=0.11.0,<0.12.0)",
-    "imageio-ffmpeg (>=0.6.0,<0.7.0)",
-    "soundfile (>=0.13.1,<0.14.0)",
-    "typed-ffmpeg (>=3.6,<4.0)",
-    "scipy (>=1.16.2,<2.0.0)"
+    "numpy<2.3.0",
+    "opencv-python>=4.12.0.88,<5.0.0.0",
+    "torch>=2.8.0,<2.9.0",
+    "torchaudio>=2.8.0,<2.9.0",
+    "transformers>=4.56.1,<5.0.0",
+    "librosa>=0.11.0,<0.12.0",
+    "imageio-ffmpeg>=0.6.0,<0.7.0",
+    "Pillow>=11.0.0,<13.0.0",
+    "soundfile>=0.13.1,<0.14.0",
+    "typed-ffmpeg>=3.6,<4.0",
+    "scipy>=1.16.2,<2.0.0"
 ]
 
 
@@ -31,7 +33,11 @@ black = "^25.1.0"
 ruff = "^0.13.0"
 mypy = "^1.18.1"
 pytest-asyncio = "^1.2.0"
-soundfile = "^0.13.1"
 
 [tool.pytest.ini_options]
 pythonpath = "src"
+
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "src"
+ignore_missing_imports = true

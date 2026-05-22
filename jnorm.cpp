@@ -3,11 +3,13 @@
 // ./jnorm target.bc func_name
 
 #include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.hh>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Constants.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/CommandLine.h>
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <cmath>
 #include <algorithm>

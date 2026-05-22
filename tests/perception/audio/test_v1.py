@@ -1,14 +1,17 @@
 """
 Tests for autocutai.perception.audio.v1
 """
-import pytest
-import numpy as np
-import soundfile as sf
+
+from collections.abc import Generator
+import os
 import tempfile
 from pathlib import Path
-import os
 
-from autocutai.perception.audio import extract, extract_sync, AudioPerception
+import numpy as np
+import pytest
+import soundfile as sf
+
+from autocutai.perception.audio import AudioPerception, extract, extract_sync
 
 
 # ------------------------------------------------------------------
@@ -27,7 +30,7 @@ def dtype(request):
 
 
 @pytest.fixture
-def silent_then_tone_wav(sr: int, dtype: str) -> Path:
+def silent_then_tone_wav(sr: int, dtype: str) -> Generator[Path, None, None]:
     """5-second file: 1 s tone, 1 s silence, 2 s tone, 1 s silence."""
     duration = 5.0
     tone_freq = 440.0
@@ -35,7 +38,7 @@ def silent_then_tone_wav(sr: int, dtype: str) -> Path:
     y = np.zeros_like(t)
 
     # 0-1 s tone
-    y[: sr] = 0.5 * np.sin(2 * np.pi * tone_freq * t[: sr])
+    y[:sr] = 0.5 * np.sin(2 * np.pi * tone_freq * t[:sr])
     # 2-4 s tone
     y[2 * sr : 4 * sr] = 0.5 * np.sin(2 * np.pi * tone_freq * t[2 * sr : 4 * sr])
     # rest is zero (silence)
@@ -109,8 +112,8 @@ async def test_extract_file_not_found():
 def test_extract_sync_low_samplerate_raises_error():
     """A sample rate that causes window/hop to be zero should raise ValueError."""
     # Create a dummy file with a low sample rate
-    sr = 10 # Below the threshold to make window/hop zero
-    y = np.zeros(sr * 1) # 1 second of audio
+    sr = 10  # Below the threshold to make window/hop zero
+    y = np.zeros(sr * 1)  # 1 second of audio
     fd, fname = tempfile.mkstemp(suffix=".wav")
     sf.write(fname, y.astype(np.float32), sr)
     os.close(fd)
